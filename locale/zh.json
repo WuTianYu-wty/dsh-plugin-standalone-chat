@@ -1,18 +1,10 @@
 {
   "meta": {
-    "title": "自由对话 (无需选择项目)",
-    "description": "模仿 Codex 与 Claude 桌面端体验，支持无需选择或绑定任何项目文件夹直接开启对话，提供一键新对话、快捷键与开箱即用的自由交流。"
+    "title": "Codex风格项目选择器 (方案A: 不选择项目)",
+    "description": "模仿 Codex 桌面端，在输入框正上方提供「选择项目」与「不选择项目」双胶囊切换，支持无项目直接自由对话。"
   },
-  "action": {
-    "newStandalone": "自由对话",
-    "newStandaloneFull": "新建无项目对话",
-    "tooltip": "新建独立对话 (无需选择项目，模仿 Claude / Codex 桌面端)"
-  },
-  "hero": {
-    "badge": "Claude & Codex 模式已就绪",
-    "title": "自由对话模式",
-    "desc": "无需选择或绑定任何本地项目文件夹，像 Claude 与 Codex 桌面端一样直接与 DeepSeek 对话。",
-    "btn": "立即开启自由对话",
-    "shortcut": "快捷键: Ctrl+Alt+N"
+  "scope": {
+    "selectProject": "选择项目",
+    "noProject": "不选择项目"
   }
 }

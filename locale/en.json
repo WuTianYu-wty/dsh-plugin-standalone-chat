@@ -1,18 +1,10 @@
 {
   "meta": {
-    "title": "Standalone Chat (No-Project Mode)",
-    "description": "Imitates Codex and Claude Desktop, enabling seamless chatting without selecting or binding a project folder. Features one-click chat, global shortcuts, and instant messaging."
+    "title": "Codex-Style Project Selector (Option A: No Project)",
+    "description": "Mimics Codex Desktop with dual-pill capsules above the composer: Select Project and No Project, enabling instant free chat without folder bindings."
   },
-  "action": {
-    "newStandalone": "Direct Chat",
-    "newStandaloneFull": "New Chat (No Project)",
-    "tooltip": "Start new standalone chat (No project required, like Claude / Codex Desktop)"
-  },
-  "hero": {
-    "badge": "Claude & Codex Mode Ready",
-    "title": "Standalone Chat Mode",
-    "desc": "Chat freely with DeepSeek without having to pick or create a project folder.",
-    "btn": "Start Direct Chat Now",
-    "shortcut": "Shortcut: Ctrl+Alt+N"
+  "scope": {
+    "selectProject": "Select Project",
+    "noProject": "No Project"
   }
 }
