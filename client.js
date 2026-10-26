@@ -1,484 +1,238 @@
 window.__ModuleLoader__.load({
   id: '@local/standalone-chat',
-  factory(require) {
-    const React = require('react');
-    const h = React.createElement;
-
-    // SVG Icons (Codex Style)
-    function FolderIcon(props) {
-      const size = props.size || 15;
-      return h(
-        'svg',
-        {
-          viewBox: '0 0 16 16',
-          width: size,
-          height: size,
-          fill: 'none',
-          stroke: 'currentColor',
-          strokeWidth: '1.25',
-          strokeLinecap: 'round',
-          strokeLinejoin: 'round',
-          style: { display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 },
-          'aria-hidden': 'true',
-        },
-        h('path', { d: 'M1.5 3.5C1.5 2.67 2.17 2 3 2h3.29c.4 0 .78.16 1.06.44l1.21 1.21c.28.28.66.44 1.06.44H13c.83 0 1.5.67 1.5 1.5v6.5c0 .83-.67 1.5-1.5 1.5H3c-.83 0-1.5-.67-1.5-1.5v-8z' })
-      );
-    }
-
-    function ComputerIcon(props) {
-      const size = props.size || 15;
-      return h(
-        'svg',
-        {
-          viewBox: '0 0 16 16',
-          width: size,
-          height: size,
-          fill: 'none',
-          stroke: 'currentColor',
-          strokeWidth: '1.25',
-          strokeLinecap: 'round',
-          strokeLinejoin: 'round',
-          style: { display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 },
-          'aria-hidden': 'true',
-        },
-        h('rect', { x: '2', y: '2.5', width: '12', height: '8.5', rx: '1.5' }),
-        h('path', { d: 'M5 14h6' }),
-        h('path', { d: 'M8 11v3' })
-      );
-    }
-
-    function ChevronDownIcon(props) {
-      const size = props.size || 11;
-      return h(
-        'svg',
-        {
-          viewBox: '0 0 16 16',
-          width: size,
-          height: size,
-          fill: 'none',
-          stroke: 'currentColor',
-          strokeWidth: '1.5',
-          strokeLinecap: 'round',
-          strokeLinejoin: 'round',
-          style: { display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, opacity: 0.7 },
-          'aria-hidden': 'true',
-        },
-        h('path', { d: 'M4 6l4 4 4-4' })
-      );
-    }
-
+  factory() {
     const STYLES = `
-      /* Codex Plan A: Dual-Pill Scope Tabs Container */
-      .dsh-codex-tabs-row {
-        box-sizing: border-box;
-        display: inline-flex;
-        align-items: center;
+      .dsh-scope-row {
+        flex-wrap: wrap;
         gap: 6px;
-        position: relative;
-        z-index: 5;
       }
-
-      /* Base capsule pill button (Codex visual match) */
-      .dsh-codex-tab {
+      .dsh-scope-row > .dsh-scope-button {
         box-sizing: border-box;
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
-        height: 28px;
+        min-width: 0;
+        max-width: min(260px, 100%);
+        height: 30px;
         padding: 0 10px;
+        border: 1px solid var(--dsw-alias-border-l4, #464646);
         border-radius: var(--dsw-radius-md, 8px);
-        border: 1px solid var(--dsw-alias-border-l1, rgba(255, 255, 255, 0.12));
-        background: var(--dsw-alias-bg-layer-1, rgba(255, 255, 255, 0.04));
-        color: var(--dsw-alias-label-secondary, #94a3b8);
+        background: transparent;
+        color: var(--dsw-alias-label-secondary, #b7b7b7);
+        font-family: inherit;
         font-size: 13px;
         font-weight: 500;
+        line-height: 18px;
         cursor: pointer;
-        user-select: none;
-        transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-        outline: none;
+        transition: background-color 120ms ease, border-color 120ms ease;
       }
-
-      .dsh-codex-tab:hover {
-        background: var(--dsw-alias-bg-layer-2, rgba(255, 255, 255, 0.08));
-        color: var(--dsw-alias-label-primary, #ffffff);
-        border-color: rgba(255, 255, 255, 0.22);
-      }
-
-      /* Active Selected Capsule Tab */
-      .dsh-codex-tab.dsh-active {
-        background: var(--dsw-alias-bg-layer-2, rgba(255, 255, 255, 0.14));
-        color: var(--dsw-alias-label-primary, #ffffff);
-        border-color: rgba(255, 255, 255, 0.28);
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-      }
-
-      .dsh-codex-tab-label {
-        max-width: 220px;
+      .dsh-scope-button > svg { flex-shrink: 0; }
+      .dsh-scope-button [class*="workspaceLabel"] {
+        min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
-
-      /* Hide original solitary workspace chip when dual-tab is active */
-      .dsh-native-chip-hidden {
-        display: none !important;
+      .dsh-scope-row > .dsh-no-project { flex-shrink: 0; }
+      .dsh-scope-row > .dsh-scope-button:hover:not(:disabled),
+      .dsh-scope-button[aria-expanded="true"] {
+        background: var(--dsw-alias-interactive-bg-hover, #292929);
+        color: var(--dsw-alias-label-primary, #eeeeee);
       }
-
-      /* Menu item inside workspace dropdown menu */
-      .dsh-codex-menu-item {
-        box-sizing: border-box;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        width: 100%;
-        padding: 8px 12px;
-        border-radius: var(--dsw-radius-sm, 6px);
-        color: var(--dsw-alias-label-primary, #ffffff);
+      .dsh-scope-button[data-dsh-project-active="true"],
+      .dsh-no-project[aria-pressed="true"] {
+        background: var(--dsw-alias-interactive-bg-hover, #292929);
+        color: var(--dsw-alias-label-primary, #eeeeee);
+        border-color: var(--dsw-alias-label-tertiary, #777777);
+      }
+      .dsh-scope-row > .dsh-scope-button:focus-visible {
+        outline: 2px solid var(--dsw-focus-ring-color, #7ca5ee);
+        outline-offset: 2px;
+      }
+      .dsh-no-project:disabled { cursor: wait; opacity: .6; }
+      .dsh-scope-button[data-dsh-scratchpad="true"] [class*="workspaceLabel"] {
+        font-size: 0;
+      }
+      .dsh-scope-button[data-dsh-scratchpad="true"] [class*="workspaceLabel"]::after {
+        content: '选择项目';
         font-size: 13px;
-        cursor: pointer;
-        transition: background 0.12s ease;
-        user-select: none;
       }
-      .dsh-codex-menu-item:hover {
-        background: var(--dsw-alias-interactive-bg-hover, rgba(255, 255, 255, 0.08));
+      .dsh-scope-error {
+        flex-basis: 100%;
+        margin: 2px 0;
+        color: var(--dsw-alias-state-error-primary, #e78484);
+        font-size: 12px;
+        line-height: 18px;
+        overflow-wrap: anywhere;
       }
-      .dsh-codex-menu-divider {
-        height: 1px;
-        margin: 4px 0;
-        background: var(--dsw-alias-border-l1, rgba(255, 255, 255, 0.1));
+      @media (prefers-reduced-motion: reduce) {
+        .dsh-scope-row > .dsh-scope-button { transition: none; }
       }
     `;
 
     return {
-      inject: ['slots', 'uiWorkspace', 'sessions', 'workspaces'],
+      inject: ['uiWorkspace', 'sessions', 'workspaces'],
       apply(ctx) {
-        // 1. Inject Styles
-        try {
-          if (typeof document !== 'undefined') {
-            let styleEl = document.querySelector('style[data-plugin="@local/standalone-chat"]');
-            if (!styleEl) {
-              styleEl = document.createElement('style');
-              styleEl.setAttribute('data-plugin', '@local/standalone-chat');
-              styleEl.textContent = STYLES;
-              document.head.appendChild(styleEl);
-            }
-          }
-        } catch (e) {
-          console.error('[standalone-chat] Failed to inject styles:', e);
-        }
-
+        if (typeof document === 'undefined' || !document.body) return;
         const uiWorkspace = ctx.get('uiWorkspace');
         const sessions = ctx.get('sessions');
         const workspaces = ctx.get('workspaces');
+        const style = document.createElement('style');
+        style.setAttribute('data-plugin', '@local/standalone-chat');
+        style.textContent = STYLES;
+        document.head.appendChild(style);
 
-        // State tracking: 'no-project' vs 'project'
-        let currentMode = 'no-project';
-        let observer;
-
-        // Ignore our own DOM changes while reconciling the controls.
-        function reconcileDOM() {
-          if (observer) observer.disconnect();
-          try {
-            updateTabsDOM();
-            injectIntoWorkspaceMenu();
-          } finally {
-            if (observer && document.body) {
-              observer.observe(document.body, { childList: true, subtree: true });
-            }
-          }
-        }
-
-        // Check whether active session belongs to any workspace
-        function checkCurrentSessionMode() {
-          try {
-            if (!sessions?.list?.getSnapshot || !workspaces?.list?.getSnapshot) {
-              return currentMode;
-            }
-            const sList = sessions.list.getSnapshot();
-            const wList = workspaces.list.getSnapshot();
-            if (!sList || !sList.byId) return currentMode;
-
-            const activeSession = Object.values(sList.byId).find(
-              (s) => (s?.retainedBy?.mainView ?? 0) > 0
-            );
-
-            if (!activeSession) {
-              return currentMode;
-            }
-
-            // Check if activeSession belongs to a workspace
-            const ws = (wList.items || []).find((item) =>
-              (item.sessionIds || []).includes(activeSession.id)
-            );
-
-            if (ws && ws.title && ws.title !== '不选择项目') {
-              currentMode = 'project';
-            } else {
-              currentMode = 'no-project';
-            }
-          } catch (e) {
-            console.warn('[standalone-chat] checkCurrentSessionMode error:', e);
-          }
-          return currentMode;
-        }
-
-        // Get current project title if in project mode
-        function getCurrentProjectTitle() {
-          try {
-            if (!sessions?.list?.getSnapshot || !workspaces?.list?.getSnapshot) return '选择项目';
-            const sList = sessions.list.getSnapshot();
-            const wList = workspaces.list.getSnapshot();
-            if (!sList || !sList.byId) return '选择项目';
-
-            const activeSession = Object.values(sList.byId).find(
-              (s) => (s?.retainedBy?.mainView ?? 0) > 0
-            );
-            if (!activeSession) return '选择项目';
-
-            const ws = (wList.items || []).find((item) =>
-              (item.sessionIds || []).includes(activeSession.id)
-            );
-            if (ws && ws.title) return ws.title;
-          } catch (e) {}
-          return '选择项目';
-        }
-
-        // Start / Switch to "不选择项目" chat
+        let disposed = false;
+        let queued;
+        let row;
+        let chip;
+        let button;
+        let errorNode;
         let isSwitching = false;
+        let switchError = '';
+
+        function isScratchpad(workspace) {
+          return typeof workspace?.path === 'string' &&
+            /\/\.dsh\/scratchpad\/?$/.test(workspace.path.replace(/\\/g, '/'));
+        }
+
+        function currentWorkspace(items) {
+          const snapshot = sessions.list.getSnapshot();
+          const active = Object.values(snapshot.byId || {}).find(
+            (session) => (session?.retainedBy?.mainView ?? 0) > 0
+          );
+          return active && items.find((workspace) => workspace.sessionIds?.includes(active.id));
+        }
+
+        function restoreChip() {
+          if (!chip) return;
+          chip.classList.remove('dsh-scope-button');
+          chip.removeAttribute('data-dsh-project-active');
+          chip.removeAttribute('data-dsh-scratchpad');
+          chip = undefined;
+        }
+
+        function removeControls() {
+          restoreChip();
+          row?.classList.remove('dsh-scope-row');
+          button?.remove();
+          errorNode?.remove();
+          row = button = errorNode = undefined;
+        }
+
         async function startNoProjectChat() {
-          if (isSwitching) return;
+          if (disposed || isSwitching) return;
           isSwitching = true;
+          switchError = '';
+          reconcileDOM();
           try {
-            currentMode = 'no-project';
-
-            // Find if there's already a blank ungrouped session
-            if (sessions?.list?.getSnapshot) {
-              const list = sessions.list.getSnapshot();
-              const wList = workspaces?.list?.getSnapshot?.();
-              const allWsSessions = new Set(
-                (wList?.items || []).flatMap((w) => w.sessionIds || [])
-              );
-
-              if (list && list.byId) {
-                const blankUngrouped = Object.values(list.byId).find(
-                  (s) => s?.blank && !allWsSessions.has(s.id)
-                );
-                if (blankUngrouped && uiWorkspace?.openSession) {
-                  uiWorkspace.openSession(blankUngrouped.id);
-                  reconcileDOM();
-                  unlockComposer();
-                  return;
-                }
-              }
-            }
-
-            // Create a new blank session without workspace binding
-            if (sessions && typeof sessions.create === 'function') {
-              const newId = await sessions.create({});
-              if (newId && uiWorkspace?.openSession) {
-                uiWorkspace.openSession(newId);
-              }
-            } else if (uiWorkspace && typeof uiWorkspace.startSession === 'function') {
-              uiWorkspace.startSession(undefined);
-            }
-          } catch (err) {
-            console.error('[standalone-chat] startNoProjectChat error:', err);
+            const scratchpad = workspaces.list.getSnapshot().items.find(isScratchpad);
+            if (!scratchpad) throw new Error('临时工作区尚未就绪，请重新加载插件后重试');
+            // Native navigation owns session creation/reuse, retention, drafts and
+            // composer enablement. Never bypass React's disabled input state.
+            await uiWorkspace.openWorkspace(scratchpad.workspaceId);
+          } catch (error) {
+            switchError = '无法打开临时会话：' + (error?.message || String(error));
+            console.error('[standalone-chat] ' + switchError);
           } finally {
             isSwitching = false;
-            setTimeout(() => {
-              reconcileDOM();
-              unlockComposer();
-            }, 50);
+            if (!disposed) reconcileDOM();
           }
         }
 
-        // Unlock composer input box when in "不选择项目" mode
-        function unlockComposer() {
-          if (currentMode !== 'no-project') return;
-          try {
-            // Find input container / contenteditable
-            const editorEl = document.querySelector('[data-composer-input], [contenteditable]');
-            if (editorEl) {
-              editorEl.setAttribute('contenteditable', 'true');
-              editorEl.removeAttribute('aria-disabled');
-              editorEl.classList.remove('ZOVoma_inputDisabled');
-            }
-
-            // Find placeholder element or set attribute
-            const placeholderEl = document.querySelector('[class*="placeholder"], [data-placeholder]');
-            if (placeholderEl && placeholderEl.textContent && placeholderEl.textContent.includes('选择一个工作区')) {
-              placeholderEl.textContent = '随心输入';
-            }
-          } catch (e) {}
-        }
-
-        // Update Dual-Tab Capsule DOM in heroWorkspaceRow
-        function updateTabsDOM() {
-          const heroRow = document.querySelector('[class*="heroWorkspaceRow"]');
-          if (!heroRow) return;
-
-          checkCurrentSessionMode();
-
-          // Native WorkspaceChip button
-          const nativeChip = heroRow.querySelector('button[aria-haspopup="menu"], button[class*="workspace"]');
+        function updateControls() {
+          const nextRow = document.querySelector('[class*="heroWorkspaceRow"]');
+          if (row !== nextRow) {
+            removeControls();
+            row = nextRow;
+          }
+          if (!row) return;
+          const nativeChip = row.querySelector('button[aria-haspopup="menu"][class*="workspace"]');
           if (!nativeChip) return;
-
-          // Hide native chip
-          nativeChip.classList.add('dsh-native-chip-hidden');
-
-          // Look for or create custom dual-tab container
-          let tabContainer = heroRow.querySelector('.dsh-codex-tabs-row');
-          if (!tabContainer) {
-            tabContainer = document.createElement('div');
-            tabContainer.className = 'dsh-codex-tabs-row';
-            heroRow.insertBefore(tabContainer, nativeChip);
+          if (chip !== nativeChip) {
+            restoreChip();
+            chip = nativeChip;
           }
+          row.classList.add('dsh-scope-row');
+          chip.classList.add('dsh-scope-button');
 
-          const projectTitle = getCurrentProjectTitle();
-          const isProjectActive = currentMode === 'project' && projectTitle !== '选择项目';
-
-          // Preserve controls and focus when the visible workspace did not change.
-          const tabState = JSON.stringify([projectTitle, isProjectActive]);
-          if (
-            tabContainer.getAttribute('data-dsh-tab-state') === tabState &&
-            tabContainer.__dshNativeChip === nativeChip &&
-            tabContainer.children.length === 2
-          ) {
-            unlockComposer();
-            return;
+          if (!button || button.parentNode !== row) {
+            button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'dsh-scope-button dsh-no-project';
+            button.title = '使用独立临时工作区，不关联你的项目';
+            button.innerHTML = '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" aria-hidden="true"><rect x="2" y="2.5" width="12" height="8.5" rx="1.5"/><path d="M5 14h6M8 11v3"/></svg><span>不选择项目</span>';
+            button.onclick = startNoProjectChat;
+            row.insertBefore(button, nativeChip.nextSibling);
           }
+          const selected = currentWorkspace(workspaces.list.getSnapshot().items || []);
+          const temporary = isScratchpad(selected);
+          chip.setAttribute('data-dsh-project-active', String(!!selected && !temporary));
+          chip.setAttribute('data-dsh-scratchpad', String(temporary));
+          button.setAttribute('aria-pressed', String(temporary));
+          button.setAttribute('aria-busy', String(isSwitching));
+          button.disabled = isSwitching;
 
-          tabContainer.innerHTML = '';
+          if (switchError) {
+            if (!errorNode || errorNode.parentNode !== row) {
+              errorNode = document.createElement('span');
+              errorNode.className = 'dsh-scope-error';
+              errorNode.setAttribute('role', 'alert');
+              row.appendChild(errorNode);
+            }
+            if (errorNode.textContent !== switchError) errorNode.textContent = switchError;
+          } else {
+            errorNode?.remove();
+            errorNode = undefined;
+          }
+        }
 
-          // 1. Tab: [📁 选择项目] (or [📁 对话 ⌵])
-          const btnProject = document.createElement('button');
-          btnProject.type = 'button';
-          btnProject.className = 'dsh-codex-tab' + (isProjectActive ? ' dsh-active' : '');
-          btnProject.title = '选择或切换项目工作区';
+        // Keep plugin mutations outside its own observation; never re-render the
+        // React-owned workspace trigger or inject children into its native menu.
+        function reconcileDOM() {
+          if (disposed) return;
+          observer.disconnect();
+          try {
+            updateControls();
+          } finally {
+            if (!disposed) observer.observe(document.body, { childList: true, subtree: true });
+          }
+        }
 
-          const folderIconWrap = document.createElement('span');
-          folderIconWrap.className = 'dsh-codex-tab-icon';
-          folderIconWrap.innerHTML = `<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M1.5 3.5C1.5 2.67 2.17 2 3 2h3.29c.4 0 .78.16 1.06.44l1.21 1.21c.28.28.66.44 1.06.44H13c.83 0 1.5.67 1.5 1.5v6.5c0 .83-.67 1.5-1.5 1.5H3c-.83 0-1.5-.67-1.5-1.5v-8z"/></svg>`;
+        function scheduleUpdate() {
+          if (disposed || queued !== undefined) return;
+          queued = setTimeout(() => {
+            queued = undefined;
+            reconcileDOM();
+          }, 0);
+        }
 
-          const projectLabel = document.createElement('span');
-          projectLabel.className = 'dsh-codex-tab-label';
-          projectLabel.textContent = isProjectActive ? projectTitle : '选择项目';
-
-          const chevronWrap = document.createElement('span');
-          chevronWrap.innerHTML = `<svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;opacity:0.7;"><path d="M4 6l4 4 4-4"/></svg>`;
-
-          btnProject.appendChild(folderIconWrap);
-          btnProject.appendChild(projectLabel);
-          btnProject.appendChild(chevronWrap);
-
-          btnProject.onclick = (e) => {
-            e.stopPropagation();
-            // Trigger native chip to open the workspace dropdown
-            nativeChip.classList.remove('dsh-native-chip-hidden');
-            nativeChip.click();
-            nativeChip.classList.add('dsh-native-chip-hidden');
-          };
-
-          // 2. Tab: [💻 不选择项目]
-          const btnNoProject = document.createElement('button');
-          btnNoProject.type = 'button';
-          btnNoProject.className = 'dsh-codex-tab' + (!isProjectActive ? ' dsh-active' : '');
-          btnNoProject.title = '无需选择工作区，直接自由对话 (Codex 模式)';
-
-          const compIconWrap = document.createElement('span');
-          compIconWrap.className = 'dsh-codex-tab-icon';
-          compIconWrap.innerHTML = `<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="2" y="2.5" width="12" height="8.5" rx="1.5"/><path d="M5 14h6"/><path d="M8 11v3"/></svg>`;
-
-          const noProjectLabel = document.createElement('span');
-          noProjectLabel.className = 'dsh-codex-tab-label';
-          noProjectLabel.textContent = '不选择项目';
-
-          btnNoProject.appendChild(compIconWrap);
-          btnNoProject.appendChild(noProjectLabel);
-
-          btnNoProject.onclick = (e) => {
-            e.stopPropagation();
+        function onKeyDown(event) {
+          if (event.repeat || event.isComposing) return;
+          const isN = event.code === 'KeyN' || event.key === 'n' || event.key === 'N';
+          if ((event.ctrlKey || event.metaKey) && event.altKey && isN) {
+            event.preventDefault();
+            event.stopPropagation();
             startNoProjectChat();
-          };
-
-          tabContainer.appendChild(btnProject);
-          tabContainer.appendChild(btnNoProject);
-          tabContainer.setAttribute('data-dsh-tab-state', tabState);
-          tabContainer.__dshNativeChip = nativeChip;
-
-          unlockComposer();
+          }
         }
 
-        // Inject "不选择项目" into the workspace dropdown menu if opened
-        function injectIntoWorkspaceMenu() {
-          const menuEl = document.querySelector('[role="menu"]');
-          if (!menuEl || menuEl.querySelector('.dsh-codex-menu-item')) return;
-
-          // Check if this menu is the workspace picker menu (contains ADD_WORKSPACE or workspace items)
-          const hasAddWs = Array.from(menuEl.querySelectorAll('*')).some(
-            (el) => el.textContent && el.textContent.includes('添加工作区')
-          );
-          if (!hasAddWs) return;
-
-          const topItem = document.createElement('div');
-          topItem.className = 'dsh-codex-menu-item';
-          topItem.innerHTML = `
-            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="2" y="2.5" width="12" height="8.5" rx="1.5"/><path d="M5 14h6"/><path d="M8 11v3"/></svg>
-            <span style="font-weight: 500;">不选择项目 (自由对话)</span>
-          `;
-          topItem.onclick = (e) => {
-            e.stopPropagation();
-            // Close menu
-            document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-            startNoProjectChat();
-          };
-
-          const divider = document.createElement('div');
-          divider.className = 'dsh-codex-menu-divider';
-
-          menuEl.insertBefore(divider, menuEl.firstChild);
-          menuEl.insertBefore(topItem, divider);
-        }
-
-        // Global DOM Observer
-        if (typeof window !== 'undefined') {
-          observer = new MutationObserver(reconcileDOM);
-
-          observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-          });
-
-          // Initial check
-          setTimeout(reconcileDOM, 100);
-          setTimeout(reconcileDOM, 500);
-
-          // Keyboard shortcut: Ctrl+Alt+N / Cmd+Alt+N to quickly jump to "不选择项目"
-          window.addEventListener(
-            'keydown',
-            (e) => {
-              const isPrimary = e.ctrlKey || e.metaKey;
-              if (isPrimary && e.altKey && (e.code === 'KeyN' || e.key === 'n' || e.key === 'N')) {
-                e.preventDefault();
-                e.stopPropagation();
-                startNoProjectChat();
-              }
-            },
-            true
-          );
-        }
-
-        // Subscribe to reactive stores if available
-        if (sessions?.list?.subscribe) {
-          sessions.list.subscribe(() => {
-            setTimeout(reconcileDOM, 30);
-          });
-        }
-        if (workspaces?.list?.subscribe) {
-          workspaces.list.subscribe(() => {
-            setTimeout(reconcileDOM, 30);
-          });
-        }
+        const observer = new MutationObserver(reconcileDOM);
+        const unsubscribeSessions = sessions.list.subscribe(scheduleUpdate);
+        const unsubscribeWorkspaces = workspaces.list.subscribe(scheduleUpdate);
+        window.addEventListener('keydown', onKeyDown, true);
+        reconcileDOM();
+        ctx.effect(() => () => {
+          disposed = true;
+          observer.disconnect();
+          clearTimeout(queued);
+          unsubscribeSessions();
+          unsubscribeWorkspaces();
+          window.removeEventListener('keydown', onKeyDown, true);
+          removeControls();
+          style.remove();
+        }, 'standalone-chat: scope controls');
       },
     };
   },
