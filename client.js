@@ -173,6 +173,20 @@ window.__ModuleLoader__.load({
 
         // State tracking: 'no-project' vs 'project'
         let currentMode = 'no-project';
+        let observer;
+
+        // Ignore our own DOM changes while reconciling the controls.
+        function reconcileDOM() {
+          if (observer) observer.disconnect();
+          try {
+            updateTabsDOM();
+            injectIntoWorkspaceMenu();
+          } finally {
+            if (observer && document.body) {
+              observer.observe(document.body, { childList: true, subtree: true });
+            }
+          }
+        }
 
         // Check whether active session belongs to any workspace
         function checkCurrentSessionMode() {
@@ -251,7 +265,7 @@ window.__ModuleLoader__.load({
                 );
                 if (blankUngrouped && uiWorkspace?.openSession) {
                   uiWorkspace.openSession(blankUngrouped.id);
-                  updateTabsDOM();
+                  reconcileDOM();
                   unlockComposer();
                   return;
                 }
@@ -272,7 +286,7 @@ window.__ModuleLoader__.load({
           } finally {
             isSwitching = false;
             setTimeout(() => {
-              updateTabsDOM();
+              reconcileDOM();
               unlockComposer();
             }, 50);
           }
@@ -322,6 +336,17 @@ window.__ModuleLoader__.load({
 
           const projectTitle = getCurrentProjectTitle();
           const isProjectActive = currentMode === 'project' && projectTitle !== '选择项目';
+
+          // Preserve controls and focus when the visible workspace did not change.
+          const tabState = JSON.stringify([projectTitle, isProjectActive]);
+          if (
+            tabContainer.getAttribute('data-dsh-tab-state') === tabState &&
+            tabContainer.__dshNativeChip === nativeChip &&
+            tabContainer.children.length === 2
+          ) {
+            unlockComposer();
+            return;
+          }
 
           tabContainer.innerHTML = '';
 
@@ -378,6 +403,8 @@ window.__ModuleLoader__.load({
 
           tabContainer.appendChild(btnProject);
           tabContainer.appendChild(btnNoProject);
+          tabContainer.setAttribute('data-dsh-tab-state', tabState);
+          tabContainer.__dshNativeChip = nativeChip;
 
           unlockComposer();
         }
@@ -415,10 +442,7 @@ window.__ModuleLoader__.load({
 
         // Global DOM Observer
         if (typeof window !== 'undefined') {
-          const observer = new MutationObserver(() => {
-            updateTabsDOM();
-            injectIntoWorkspaceMenu();
-          });
+          observer = new MutationObserver(reconcileDOM);
 
           observer.observe(document.body, {
             childList: true,
@@ -426,8 +450,8 @@ window.__ModuleLoader__.load({
           });
 
           // Initial check
-          setTimeout(updateTabsDOM, 100);
-          setTimeout(updateTabsDOM, 500);
+          setTimeout(reconcileDOM, 100);
+          setTimeout(reconcileDOM, 500);
 
           // Keyboard shortcut: Ctrl+Alt+N / Cmd+Alt+N to quickly jump to "不选择项目"
           window.addEventListener(
@@ -447,12 +471,12 @@ window.__ModuleLoader__.load({
         // Subscribe to reactive stores if available
         if (sessions?.list?.subscribe) {
           sessions.list.subscribe(() => {
-            setTimeout(updateTabsDOM, 30);
+            setTimeout(reconcileDOM, 30);
           });
         }
         if (workspaces?.list?.subscribe) {
           workspaces.list.subscribe(() => {
-            setTimeout(updateTabsDOM, 30);
+            setTimeout(reconcileDOM, 30);
           });
         }
       },

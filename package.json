@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "模仿 Codex 与 Claude 桌面端，无需选择项目即可随时开始对话",
   "private": true,
+  "scripts": {
+    "test": "node test/standalone-chat-regression.cjs"
+  },
   "type": "module",
   "license": "MIT",
   "repository": {
